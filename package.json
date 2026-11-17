@@ -2,8 +2,9 @@
   "name": "speculative-engine",
   "displayName": "Speculative Engine",
   "description": "Run multiple AI strategies in parallel, compare outcomes, pick the best. TrueFoundry Forge-a-thon entry.",
-  "version": "0.1.0",
-  "publisher": "your-name",
+  "version": "0.1.1",
+  "author": "Edwin Aby",
+  "publisher": "Edwin Aby",
   "engines": {
     "vscode": "^1.80.0"
   },
