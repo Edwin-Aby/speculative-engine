@@ -1,235 +1,142 @@
-# 🔮 Speculative Engine - Forge-a-thon Round 1
+# 🔮 Speculative Engine Agent
 
-**A parallel strategy execution engine that runs multiple AI approaches simultaneously, compares outcomes, and recommends the best solution.**
+A VS Code extension agent that runs multiple AI coding strategies in parallel, compares outcomes, and recommends the best approach — all through a conversational chatbox interface.
 
-Built for the **TrueFoundry Forge-a-thon** hackathon.
+Built for the **TrueFoundry Forge-a-thon**.
 
 ---
 
-## 🎯 The Problem
+## What it does
 
-Traditional AI coding assistants propose **one solution** → you approve/reject → iterate. This is slow and you never know if a better approach existed.
+Instead of getting one AI suggestion and iterating, Speculative Engine runs **three strategies simultaneously** (Minimal, Robust, Performance), scores each on success, execution time, coverage, and test results, and recommends the best one.
 
-**Speculative Engine solves this by running multiple strategies IN PARALLEL and showing you the outcomes side-by-side.**
+Everything happens inside VS Code through a chatbox webview — describe your task, watch the strategies run in parallel, and pick the winner.
+
+---
+
+## ✨ Features
+
+- **Chatbox agent interface** — Conversational webview UI inside VS Code with message bubbles, recommendation cards, and strategy comparison tables
+- **Three strategies in parallel** — Minimal, Robust, and Performance execute simultaneously via `Promise.allSettled`
+- **Auto-selection** — Scores and recommends the best strategy based on success, execution time, coverage, and test results
+- **TrueFoundry SDK integration** — Native AI execution through TrueFoundry
+- **Keybindings** — `Ctrl+Alt+K` (run), `Ctrl+Alt+O` (open viewer)
+- **Settings** — API key, endpoint, default strategies, max parallel strategies
+
+---
+
+## 📦 Installation
+
+### From VSIX (recommended)
+
+1. Download [`speculative-engine-0.1.0.vsix`](https://github.com/Edwin-Aby/speculative-engine/releases/download/v0.1.0/speculative-engine-0.1.0.vsix) from the [Releases page](https://github.com/Edwin-Aby/speculative-engine/releases).
+2. In VS Code: Extensions view → `…` → **Install from VSIX** → select the file.
+3. Reload VS Code when prompted.
+
+### From source
+
+```bash
+git clone https://github.com/Edwin-Aby/speculative-engine.git
+cd speculative-engine
+npm install
+npm run compile   # or npm run watch
+```
+
+Then press `F5` in VS Code to launch the Extension Development Host.
+
+---
+
+## ⌨️ Keybindings
+
+| Key (Windows/Linux) | Key (macOS) | Command |
+|---|---|---|
+| `Ctrl+Alt+K` | `Cmd+Alt+K` | `speculativeEngine.run` — Open chatbox and describe a task |
+| `Ctrl+Alt+O` | `Cmd+Alt+O` | `speculativeEngine.openViewer` — Open the Outcome Viewer |
+
+You can also run commands from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`):
+- **Speculative Engine: Run**
+- **Speculative Engine: Open Outcome Viewer**
+- **Speculative Engine: Configure**
+
+---
+
+## ⚙️ Configuration
+
+Configure via VS Code Settings (`File` → `Preferences` → `Settings`, search "Speculative Engine"):
+
+| Setting | Description | Default |
+|---|---|---|
+| `speculativeEngine.truefoundryApiKey` | TrueFoundry API key for AI execution | `""` |
+| `speculativeEngine.truefoundryEndpoint` | TrueFoundry API endpoint | `https://api.truefoundry.com` |
+| `speculativeEngine.defaultStrategies` | Strategies to run | `["minimal", "robust", "performance"]` |
+| `speculativeEngine.maxParallelStrategies` | Max parallel strategies | `3` |
+
+Get your API key from [TrueFoundry](https://truefoundry.com).
+
+---
+
+## 🎯 Usage
+
+1. Set your TrueFoundry API key in settings (or run **Speculative Engine: Configure**).
+2. Press **Ctrl+Alt+K** (or open the Command Palette → "Run Speculative Engine").
+3. Describe your task in the chatbox, e.g. *"Add JWT authentication to this Flask API with login/register endpoints"*.
+4. Select the strategies to run (or use defaults).
+5. The agent runs them in parallel and shows a recommendation with a full strategy comparison.
+6. Open the Outcome Viewer with **Ctrl+Alt+O** to see detailed results.
 
 ---
 
 ## 🏗 Architecture
 
 ```
-User Request
-     │
-     ▼
-┌────────────────────────────────────────┐
-│        TASK DECOMPOSER                  │
-│  Analyzes request, plans strategies     │
-└────────────────────┬────────────────────┘
-                     │
-     ┌───────────────┼───────────────┐
-     ▼               ▼               ▼
-┌─────────┐     ┌─────────┐     ┌─────────┐
-│Strategy │     │Strategy │     │Strategy │
-│ Minimal │     │ Robust  │     │ Perf    │
-│ (3 files)│     │(12 files)│    │(7 files)│
-└────┬────┘     └────┬────┘     └────┬────┘
-     │               │               │
-     ▼               ▼               ▼
-┌────────────────────────────────────────┐
-│      TRUEFOUNDRY SESSION POOL           │
-│  Parallel isolated sessions per strategy│
-└────────────────────┬────────────────────┘
-                     │
-                     ▼
-┌────────────────────────────────────────┐
-│         OUTCOME VIEWER                  │
-│  Side-by-side comparison + rankings     │
-│  Code diffs • Benchmarks • Test results │
-└────────────────────────────────────────┘
+User Request → Chatbox (webview) → Speculative Engine
+                                      │
+             ┌──────────┬──────────┬──────────┐
+             ▼          ▼          ▼
+        Minimal    Robust    Performance
+        (strategy) (strategy) (strategy)
+             │          │          │
+             └──────────┴──────────┘
+                         │
+              TrueFoundry SDK (parallel sessions)
+                         │
+              Outcome Viewer (comparison + recommendation)
 ```
+
+Strategies run via `Promise.allSettled`, batched by `maxParallelStrategies`. Results are scored and the best is recommended.
 
 ---
 
-## 🚀 Three Strategies, Three Philosophies
-
-| Strategy | Philosophy | Files | Tests | Use Case |
-|----------|------------|-------|-------|----------|
-| **Minimal** | "Less is more" | 3 | 5 (45%) | Prototypes, MVPs, quick fixes |
-| **Robust** | "Production-ready" | 12 | 25 (95%) | Production services, regulated environments |
-| **Performance** | "Fast is a feature" | 7 | 12 (70%) | High-throughput APIs, latency-critical |
-
----
-
-## 🏃 Quick Start
-
-### Prerequisites
-- Node.js 20+
-- TrueFoundry account (free tier) → [Get API Key](https://truefoundry.com)
-
-### Installation
-
-```bash
-# Clone and install
-cd D:\COMPETITION\speculative-engine
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your TrueFoundry API key
-
-# Build
-npm run build
-
-# Run demo
-npm run demo
-```
-
-### View Results
-Open **http://localhost:3000** to see the live comparison dashboard.
-
----
-
-## 🎬 Demo
-
-The demo adds **JWT authentication** to a simple Flask API using 3 different strategies:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    STRATEGY COMPARISON                          │
-├─────────┬──────────────┬───────────┬────────┬────────┬────────┤
-│ Rank    │ Strategy     │ Philosophy│ Tests  │ Time   │ Coverage│
-├─────────┼──────────────┼───────────┼────────┼────────┼────────┤
-│ ★ 1     │ Robust       │ Production│ 25/25  │ 4.2s   │ 95%     │
-│ 2       │ Performance  │ Speed     │ 12/12  │ 2.1s   │ 70%     │
-│ 3       │ Minimal      │ Minimal   │ 5/5    │ 0.8s   │ 45%     │
-└─────────┴──────────────┴───────────┴────────┴────────┴────────┘
-```
-
-The **Robust** strategy is recommended for production use (best test coverage + observability).
-
----
-
-## 🏗 Project Structure
+## 📁 Project Structure
 
 ```
 speculative-engine/
 ├── src/
-│   ├── core/
-│   │   └── engine.ts          # Main orchestrator
+│   ├── engine.ts          # SpeculativeEngine orchestrator
+│   ├── extension.ts       # VS Code extension activation
+│   ├── outcomeViewer.ts   # Chatbox webview provider
 │   ├── strategies/
-│   │   ├── base.ts            # Abstract base class
-│   │   ├── minimal.ts         # Minimal strategy
-│   │   ├── robust.ts          # Production-ready strategy
-│   │   ├── performance.ts     # Performance-optimized strategy
-│   │   └── index.ts           # Exports
-│   ├── types/
-│   │   ├── index.ts           # Core type definitions
-│   │   └── truefoundry.ts     # TrueFoundry SDK wrapper
-│   ├── viewer/
-│   │   ├── server.ts          # Web comparison dashboard
-│   │   └── index.ts           # Exports
-│   ├── demo.ts                # Demo runner
-│   └── index.ts               # Main exports
-├── demo/
-│   ├── app.py                 # Demo Flask API (target)
-│   └── requirements.txt       # Python deps
-├── package.json
-├── tsconfig.json
+│   │   ├── base.ts        # Abstract strategy executor
+│   │   ├── minimal.ts     # Minimal strategy
+│   │   ├── robust.ts      # Production-ready strategy
+│   │   ├── performance.ts # Performance-optimized strategy
+│   │   └── index.ts       # Strategy exports
+│   ├── types.ts           # Type definitions
+│   └── truefoundry.ts     # TrueFoundry SDK client
+├── media/
+│   ├── viewer.css         # Chatbox styles
+│   └── viewer.js          # ChatAgent frontend logic
+├── package.json           # Extension manifest
+├── tsconfig.json          # TypeScript config
 └── README.md
 ```
 
 ---
 
-## 🔧 Configuration
+## 📄 License
 
-Create `.env` from `.env.example`:
-
-```env
-# Required for TrueFoundry integration
-TRUEFOUNDRY_API_KEY=your-api-key-here
-TRUEFOUNDRY_ENDPOINT=https://api.truefoundry.com
-
-# Optional
-SESSION_POOL_SIZE=4
-DEFAULT_TIMEOUT=180000
-VIEWER_PORT=3000
-```
+MIT License — Built for TrueFoundry Forge-a-thon.
 
 ---
 
-## 📊 Outcome Viewer
-
-The web dashboard at `http://localhost:3000` shows:
-
-- **Strategy Cards** - Visual comparison with scores, metrics, badges
-- **Comparison Table** - Ranked table with all criteria
-- **Code Diffs** - Side-by-side code changes per strategy
-- **Benchmarks** - Latency, throughput, memory charts
-- **Test Results** - Pass/fail, coverage, duration
-- **Auto-refresh** - Updates every 30 seconds
-
----
-
-## 🎯 Forge-a-thon Compliance
-
-| Requirement | Status |
-|-------------|--------|
-| Team of 3 | ✅ Each member owns a strategy |
-| TrueFoundry Platform | ✅ Native SDK integration |
-| Public GitHub Repo | ✅ Ready to push |
-| Working Demo | ✅ Flask API + 3 strategies |
-| Documentation | ✅ This README + inline docs |
-| Innovation | ✅ Parallel speculative execution |
-
----
-
-## 🔮 How It Differs from ForgePilot
-
-| Aspect | ForgePilot | Speculative Engine |
-|--------|------------|-------------------|
-| **Paradigm** | Single proposal → approve | **Parallel strategies → outcome comparison** |
-| **Interface** | VS Code extension | **CLI + Web dashboard (any IDE)** |
-| **Workflow** | Sequential iteration | **Parallel speculative execution** |
-| **Decision** | Human reviews code | **Human reviews outcomes/benchmarks** |
-| **CI/CD** | None | **Built-in benchmarks & test results** |
-| **Team Workflow** | Single user | **Natural 3-person split (1 strategy each)** |
-
----
-
-## 👥 Team Workflow (3 People)
-
-| Member | Owns | Deliverable |
-|--------|------|-------------|
-| **You** | Core Engine + Strategy A (Minimal) | Orchestrator, task decomposer, minimal strategy |
-| **Teammate 1** | Strategy B (Robust) | Comprehensive strategy with observability |
-| **Teammate 2** | Strategy C (Performance) | Optimized strategy with benchmarks |
-
-**Shared:** TrueFoundry session pool, outcome viewer UI, merge logic
-
----
-
-## 🚀 Future Enhancements (Post-Round 1)
-
-- [ ] **Strategy D: Security-First** - Zero-trust, encryption, audit logs
-- [ ] **Strategy E: Maintainable** - Clean architecture, SOLID, docs
-- [ ] **Custom Strategy Builder** - DSL for defining new philosophies
-- [ ] **GitHub Integration** - Auto-create PRs from chosen timeline
-- [ ] **Cost Optimization** - Model selection based on task complexity
-- [ ] **Learning Engine** - Improve recommendations from past selections
-
----
-
-## 📝 License
-
-MIT License - Built for TrueFoundry Forge-a-thon 2024
-
----
-
-## 🙏 Acknowledgments
-
-- **TrueFoundry** for the platform and SDK
-- **ForgePilot** team for inspiration (VS Code extension approach)
-- **Forge-a-thon** organizers for the challenge
-
----
-
-**Built with ❤️ for TrueFoundry Forge-a-thon Round 1**
+**Built with ❤️ for TrueFoundry Forge-a-thon**
