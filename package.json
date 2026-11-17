@@ -67,7 +67,21 @@
           "description": "Maximum parallel strategies"
         }
       }
-    }
+    },
+    "keybinds": [
+      {
+        "command": "speculativeEngine.run",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "speculativeEngine.openViewer",
+        "key": "ctrl+alt+o",
+        "mac": "cmd+alt+o",
+        "when": "editorTextFocus"
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p ./",

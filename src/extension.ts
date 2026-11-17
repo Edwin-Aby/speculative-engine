@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { SpeculativeEngine } from './engine';
 import { OutcomeViewerProvider } from './outcomeViewer';
+import { MinimalStrategy, RobustStrategy, PerformanceStrategy } from './strategies';
 
 let engine: SpeculativeEngine | null = null;
 let viewerProvider: OutcomeViewerProvider | null = null;
@@ -17,8 +18,14 @@ export function activate(context: vscode.ExtensionContext) {
         defaultStrategies: config.get<string[]>('defaultStrategies') || ['minimal', 'robust', 'performance']
     });
 
-    // Register the outcome viewer
+    // Register strategy executors with the engine
+    engine.registerExecutor('minimal', new MinimalStrategy());
+    engine.registerExecutor('robust', new RobustStrategy());
+    engine.registerExecutor('performance', new PerformanceStrategy());
+
+    // Register the outcome viewer and wire the engine to it
     viewerProvider = new OutcomeViewerProvider(context.extensionUri);
+    viewerProvider.setEngine(engine);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('speculativeEngine.outcomeViewer', viewerProvider)
     );

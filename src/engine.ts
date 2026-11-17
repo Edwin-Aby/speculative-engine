@@ -60,7 +60,7 @@ export class SpeculativeEngine {
     private async executeStrategy(executor: StrategyExecutor, task: { description: string }): Promise<StrategyResult> {
         const startTime = Date.now();
         try {
-            const result = await executor.execute({ description: '' });
+            const result = await executor.execute(task);
             return {
                 strategyId: executor.constructor.name,
                 strategyName: executor.constructor.name,

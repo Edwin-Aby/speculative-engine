@@ -1,13 +1,19 @@
 import * as vscode from 'vscode';
 import { ComparisonResult } from './types';
+import { SpeculativeEngine } from './engine';
 
 export class OutcomeViewerProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = 'speculativeEngine.outcomeViewer';
     private _view?: vscode.WebviewView;
     private readonly extensionUri: vscode.Uri;
+    private engine: SpeculativeEngine | null = null;
 
     constructor(extensionUri: vscode.Uri) {
         this.extensionUri = extensionUri;
+    }
+
+    setEngine(engine: SpeculativeEngine) {
+        this.engine = engine;
     }
 
     resolveWebviewView(
@@ -23,6 +29,55 @@ export class OutcomeViewerProvider implements vscode.WebviewViewProvider {
         };
 
         webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
+
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            switch (message.type) {
+                case 'chatMessage':
+                    await this.handleChatMessage(message.text);
+                    break;
+                case 'clearChat':
+                    this._view?.webview.postMessage({ type: 'chatCleared' });
+                    break;
+            }
+        });
+    }
+
+    private async handleChatMessage(text: string) {
+        // Echo user message back to webview for display
+        this._view?.webview.postMessage({
+            type: 'userMessage',
+            text,
+            timestamp: new Date().toISOString()
+        });
+
+        // Run engine if available
+        if (this.engine) {
+            try {
+                const comparison = await this.engine.execute({
+                    description: text,
+                    strategies: ['minimal', 'robust', 'performance'],
+                    priority: 'high'
+                });
+
+                this._view?.webview.postMessage({
+                    type: 'agentResponse',
+                    data: comparison,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (error) {
+                this._view?.webview.postMessage({
+                    type: 'agentError',
+                    error: error instanceof Error ? error.message : String(error),
+                    timestamp: new Date().toISOString()
+                });
+            }
+        } else {
+            this._view?.webview.postMessage({
+                type: 'agentError',
+                error: 'Speculative Engine not initialized',
+                timestamp: new Date().toISOString()
+            });
+        }
     }
 
     updateResults(comparison: any) {
@@ -32,6 +87,14 @@ export class OutcomeViewerProvider implements vscode.WebviewViewProvider {
                 data: comparison
             });
         }
+    }
+
+    sendAgentMessage(text: string) {
+        this._view?.webview.postMessage({
+            type: 'agentMessage',
+            text,
+            timestamp: new Date().toISOString()
+        });
     }
 
     private getHtmlForWebview(webview: vscode.Webview): string {
@@ -44,41 +107,34 @@ export class OutcomeViewerProvider implements vscode.WebviewViewProvider {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="${styleUri}">
-    <title>Speculative Engine Results</title>
+    <title>Speculative Engine Agent</title>
 </head>
 <body>
-    <div class="header">
-        <h1>🔮 Speculative Engine Results</h1>
-        <div class="timestamp" id="timestamp"></div>
+    <div class="chat-header">
+        <div class="header-content">
+            <h1>🔮 Speculative Engine Agent</h1>
+            <div class="status" id="status">● Ready</div>
+        </div>
+        <button class="btn-clear" id="clearChat" title="Clear Chat">🗑️</button>
     </div>
 
-    <div class="recommendation" id="recommendation" style="display: none;">
-        <h2>🏆 Recommended Strategy</h2>
-        <div class="recommendation-card" id="recommendationCard"></div>
+    <div class="chat-container" id="chatContainer">
+        <div class="message agent" id="welcomeMessage">
+            <div class="message-content">
+                <strong>Speculative Engine Agent:</strong> Hello! I'm your AI coding assistant. Describe a task and I'll run multiple strategies in parallel (Minimal, Robust, Performance) and recommend the best approach. What would you like to build?
+            </div>
+            <div class="message-time" id="welcomeTime"></div>
+        </div>
     </div>
 
-    <div class="comparison">
-        <h2>📊 Strategy Comparison</h2>
-        <table id="comparisonTable">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Strategy</th>
-                    <th>Philosophy</th>
-                    <th>Success</th>
-                    <th>Time (ms)</th>
-                    <th>Coverage</th>
-                    <th>Tests</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody id="comparisonBody"></tbody>
-        </table>
-    </div>
-
-    <div class="details" id="details" style="display: none;">
-        <h2>🔍 Details</h2>
-        <div id="detailsContent"></div>
+    <div class="chat-input-area">
+        <div class="input-wrapper">
+            <input type="text" id="chatInput" placeholder="Describe your coding task... (e.g., Add JWT authentication to this Flask API)" />
+            <button id="sendBtn">Send</button>
+        </div>
+        <div class="chat-hints">
+            <span>💡 Try: "Add JWT auth", "Build a REST API", "Refactor this function", "Create a React component"</span>
+        </div>
     </div>
 
     <script src="${scriptUri}"></script>
