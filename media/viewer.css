@@ -1,0 +1,214 @@
+/* Speculative Engine Outcome Viewer Styles */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-editor-background);
+    line-height: 1.6;
+    font-size: 13px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    margin-bottom: 16px;
+}
+
+.header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.timestamp {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.recommendation {
+    background: var(--vscode-badge-background);
+    border: 1px solid var(--vscode-badge-border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.recommendation h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.recommendation-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.recommendation-card .strategy-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+}
+
+.recommendation-card .philosophy {
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.recommendation-card .metrics {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.metric {
+    background: var(--vscode-badge-background);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.comparison {
+    margin-top: 24px;
+}
+
+.comparison h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+th {
+    background: var(--vscode-editor-background);
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td {
+    color: var(--vscode-foreground);
+    font-size: 12px;
+}
+
+tr:hover td {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.rank {
+    font-weight: 600;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rank-1 { color: #dcdcaa; }
+.rank-2 { color: #c0c0c0; }
+.rank-3 { color: #cd7f32; }
+
+.philosophy-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-minimal { background: #4ec9b0; color: #000; }
+.badge-robust { background: #dcdcaa; color: #000; }
+.badge-performance { background: #dcdcaa; color: #000; }
+.badge-custom { background: #569cd6; color: #fff; }
+
+.success { color: #4ec9b0; }
+.failed { color: #f14c4c; }
+
+.details {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.details h2 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.details-content {
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 16px;
+    font-family: var(--vscode-editor-font-family);
+    font-size: 12px;
+    line-height: 1.5;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--vscode-progressBar-background);
+    border-top-color: var(--vscode-focusBorder);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error {
+    background: rgba(241, 76, 76, 0.1);
+    border: 1px solid #f14c4c;
+    border-radius: 4px;
+    padding: 12px;
+    color: #f14c4c;
+    margin: 16px 0;
+}
+
+.badge-minimal { background: #4ec9b0; color: #000; }
+.badge-robust { background: #dcdcaa; color: #000; }
+.badge-performance { background: #dcdcaa; color: #000; }
+.badge-custom { background: #569cd6; color: #fff; }
+
+.success { color: #4ec9b0; }
+.failed { color: #f14c4c; }
